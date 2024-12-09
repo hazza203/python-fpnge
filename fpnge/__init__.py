@@ -35,13 +35,13 @@ def frombytes(bytes, width, height, channels, bits_per_channel, comp_level=4, st
 	return fpnge.binding.encode_bytes(bytes, width, height, channels, bits_per_channel, comp_level, stride)
 
 def fromNP(ndarray: 'NDArray', comp_level=4) -> bytes:
-	if ndarray.ndim != 3:
-		raise AttributeError("Must have 3 dimensions (height x width x channels)")
+	channels = ndarray.shape[2] if len(ndarray.shape) == 3 else 1
+
 	if ndarray.itemsize > 1 and ndarray.dtype.byteorder != '>':
 		# Note: the python bindings will actually swap this, but it can be inconsistent and so is better to be explicit
 		raise AttributeError("For dtypes larger than 8bits, byteorder must be big-endian. Consider using `np.ndarray.byteswap` explicitly")
 	# This definition of shape agrees with: https://numpy.org/doc/stable/reference/generated/numpy.ndarray.shape.html#numpy.ndarray.shape
-	return fpnge.binding.encode_view(ndarray.data, ndarray.shape[1], ndarray.shape[0], ndarray.shape[2], ndarray.dtype.itemsize * 8, comp_level)
+	return fpnge.binding.encode_view(ndarray.data, ndarray.shape[1], ndarray.shape[0], channels, ndarray.dtype.itemsize * 8, comp_level)
 
 def fromMat(mat: 'Mat', comp_level=4) -> bytes:
 	try:
